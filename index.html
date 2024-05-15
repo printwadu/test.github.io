@@ -51,7 +51,7 @@ e.</pre>
 
             <pre id="output" class="code">
 		    * input an encoding
-		    * choose a route 
+		    * choose a route (use `!` for exclusive facets and ` & ` as the delimiter)
 		    * choose output option
 		    * press enter</pre>
 
@@ -71,8 +71,7 @@ e.</pre>
     var input = ace.edit("input");
     var route = ace.edit("route");
     var ex = document.getElementById("examples");
-    var output = "@ !a & b\n# 1\n\nsolution 1: a e";
-
+    var output = "* input an encoding\n* choose a route (use `!` for exclusive facets and ` & ` as the delimiter)\n* choose output option\n* press enter";
 
     route.setOptions({ 
       showLineNumbers: false, 
