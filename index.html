@@ -31,17 +31,17 @@ c;d :- b.
 e.</pre>
 
             <pre id="cnf">
-a ~b
-~c</pre>
+a b ~c
+~a ~b ~d </pre>
 
             <ul class="hlist">
               <li>
                 <select id="mode">
-                  <option selected>answer sets</option>
+                  <option selected>representative answer sets</option>
                   <option>facet-inducing atoms</option>
                   <option>uncertainty reductions</option>
                   <option>conditional probabilities</option>
-                  <option>representative answer sets</option>
+                  <option>answer sets</option>
                 </select>
               </li>
             <input type="button" id="run" value="enter" onclick="solve()"/>
@@ -99,13 +99,15 @@ a ~b
         var index = document.getElementById("mode").selectedIndex;
 
         if (index == 0) {
-            answer_sets();
+            representative_answer_sets();
         } else if (index == 1) {
             facet_inducing_atoms();
         } else if (index == 2) {
             uncertainty_reductions();
         } else if (index == 3) {
             conditional_probabilities();
+        } else {
+            answer_sets();
         }
     }
 
@@ -282,6 +284,58 @@ a ~b
             res = await clingo.run(p, 0);
             n = res.Models.Number;
             outputElement.textContent += ((count - n) / count).toFixed(3) + "  " + atom + "\n";
+        }
+    }
+
+    async function representative_answer_sets() {
+        outputElement.textContent = "";
+
+        delta = cnf.getValue().split("\n").filter(x => x.length > 0).map(x => ":- " + x.trim().split(" ").map((l) => {
+            if (l.charAt(0) == '~') {
+                return l.substring(1)
+            } else {
+                return "not " + l
+            }
+        }).join(",") + ".").join("\n");
+
+        let lp = input.getValue() + "\n" + delta;
+
+        outputElement.textContent = "determining facet-inducing/target atoms...\n";
+        let res = await clingo.run(lp, 0, ["--enum-mode=brave", "--opt-strategy=usc"]);
+        bcs = res.Call[0].Witnesses.slice(-1)[0].Value;
+        if (bcs.length == 0) {
+            return;
+        }
+        res = await clingo.run(lp, 0, ["--enum-mode=cautious", "--opt-strategy=usc"]);
+        let ccs = new Set(res.Call[0].Witnesses.slice(-1)[0].Value);
+        let fcs = bcs.filter(x => !ccs.has(x));
+        to_observe = fcs;
+        let prev = to_observe.length;
+        let curr = prev;
+
+        outputElement.textContent += "collecting representative answer sets...\n\n";
+        let n = 1;
+        for (let i = 0; i < fcs.length; i++) {
+            if (prev == 0) { 
+                outputElement.textContent += "\ndone";
+                return; 
+            }
+
+            const atom = fcs[i];
+            res = await clingo.run(lp + ":- not " + atom + ".", 1);
+            xs = new Set(res.Call[0].Witnesses.slice(-1)[0].Value);
+            to_observe = to_observe.filter(x => !xs.has(x));
+            curr = to_observe.length;
+
+            xs = Array.from(xs);
+            if (prev > curr) {
+                outputElement.textContent += "solution " + n + ":\n";
+                for (let k = 0; k < xs.length; k++) { outputElement.textContent += xs[k] + " "; }
+                outputElement.textContent += "\n";
+                n += 1;
+            }
+
+            prev = curr;
         }
     }
   </script>
