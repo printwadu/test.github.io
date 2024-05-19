@@ -300,7 +300,7 @@ a b ~c
 
         let lp = input.getValue() + "\n" + delta;
 
-        outputElement.textContent = "determining facet-inducing/target atoms...\n";
+        outputElement.textContent = "...\n";
         let res = await clingo.run(lp, 0, ["--enum-mode=brave", "--opt-strategy=usc"]);
         bcs = res.Call[0].Witnesses.slice(-1)[0].Value;
         if (bcs.length == 0) {
@@ -313,11 +313,9 @@ a b ~c
         let prev = to_observe.length;
         let curr = prev;
 
-        outputElement.textContent += "collecting representative answer sets...\n\n";
         let n = 1;
         for (let i = 0; i < fcs.length; i++) {
             if (prev == 0) { 
-                outputElement.textContent += "\ndone";
                 return; 
             }
 
