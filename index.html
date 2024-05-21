@@ -278,12 +278,12 @@ a b ~c
             let n = 0;
             res = await clingo.run(p, 0);
             n = res.Models.Number;
-            outputElement.textContent += ((count - n) / count).toFixed(3) + "  ";
+            outputElement.textContent += 1.0-((count - n) / count).toFixed(3) + "  ";
 
             p = lp + "\n:- " + atom + ".";
             res = await clingo.run(p, 0);
             n = res.Models.Number;
-            outputElement.textContent += ((count - n) / count).toFixed(3) + "  " + atom + "\n";
+            outputElement.textContent += 1.0-((count - n) / count).toFixed(3) + "  " + atom + "\n";
         }
     }
 
